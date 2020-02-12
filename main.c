@@ -12,6 +12,8 @@
 #include <sys/ioctl.h>
 #include <stdarg.h>
 
+#define UART_BUFFER_SIZE 4096
+
 int m_stty_fd = 0;
 int m_baudrate = 115200;
 static struct termios m_oldt;
@@ -110,14 +112,8 @@ int stty_telos(int fd, int baudrate) {
   return 0;
 }
 
-void serial_to_stdout(int fd) {
-  char buf[2000] = {0};
-  int size, pos;
-
-  size = read(fd, buf, sizeof(buf));
-  if (size < 0)
-    return;
-
+void convertBackspace(char* aBuffer, size_t aSize)
+{
 #ifdef __APPLE__
   // Linux backspace code: {0x7f, 0x1b, 0x5b, 0x4b}
   // MAC   backspace code: {0x08, 0x1b, 0x5b, 0x4b}
@@ -125,19 +121,36 @@ void serial_to_stdout(int fd) {
   // convert to MAC backspace code
   {
     int i;
-    for (i = 0; i < size; i++) {
-      if (buf[i] == 0x7f)
-        buf[i] = 0x08;
+    for (i = 0; i < aSize; i++) {
+      if (aBuffer[i] == 0x7f)
+        aBuffer[i] = 0x08;
     }
   }
 #endif
+}
+
+void serial_to_stdout(int fd) {
+  char buf[UART_BUFFER_SIZE] = {0};
+  int size;
+
+  size = read(fd, buf, sizeof(buf));
+  if (size < 0)
+    return;
+
+  convertBackspace(buf, size);
 
   write(STDOUT_FILENO, buf, size);
 }
 
 void stdin_to_serial(int fd) {
-  char ch = getchar();
-  write(fd, &ch, 1);
+  char buf[UART_BUFFER_SIZE] = {0};
+  int size;
+
+  size = read(STDIN_FILENO, buf, sizeof(buf));
+  if (size < 0)
+    return;
+
+  write(fd, buf, size);
 }
 
 void print_help() {
