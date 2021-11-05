@@ -126,6 +126,9 @@ void convertBackspace(char* aBuffer, size_t aSize)
         aBuffer[i] = 0x08;
     }
   }
+#else
+  (void)aBuffer;
+  (void)aSize;
 #endif
 }
 
@@ -163,6 +166,8 @@ void print_help() {
 }
 
 void sigcleanup(int signo) {
+  (void)signo;
+
   if (m_stty_fd != 0)
     close(m_stty_fd);
 
@@ -170,7 +175,7 @@ void sigcleanup(int signo) {
 }
 
 int  main (int argc, char **argv) {
-  int max_fd, ret, c;
+  int max_fd, ret;
   fd_set rset, wset;
 
   if (argc < 2) {
@@ -223,7 +228,6 @@ int  main (int argc, char **argv) {
   }
 
   close(m_stty_fd);
+
   return 0;
 }
-
-
