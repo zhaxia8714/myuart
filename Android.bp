@@ -1,0 +1,20 @@
+cc_binary {
+    name: "myuart",
+    vendor: true,
+
+    cppflags: [
+        "-Wno-unused-variable",
+        "-Wno-unused-parameter",
+    ],
+
+    shared_libs: [
+        "liblog",
+        "libbase",
+        "libutils",
+        "libcutils",
+    ],
+
+    srcs: [
+        "main.c",
+    ],
+}
